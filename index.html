@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Таза Казан — Чистая Казань</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ЛЕНДИНГ -->
+    <div id="landingScreen" class="screen active">
+        <div class="landing-bg">
+            <div class="bubble b1"></div>
+            <div class="bubble b2"></div>
+            <div class="bubble b3"></div>
+            <div class="bubble b4"></div>
+            <div class="bubble b5"></div>
+            <div class="bubble b6"></div>
+            
+            <div class="landing-nav">
+                <div class="landing-logo">🌿 <span id="landingLogoText">Таза Казан</span></div>
+                <div class="landing-nav-links">
+                    <button class="landing-nav-btn" id="landingLoginBtn">Вход</button>
+                    <button class="landing-nav-btn primary" id="landingRegisterBtn">Регистрация</button>
+                </div>
+            </div>
+            
+            <div class="landing-content">
+                <div class="landing-left">
+                    <h1 class="landing-title" id="landingTitle">
+                        <span class="word">Добро</span>
+                        <span class="word">пожаловать!</span>
+                    </h1>
+                    <h2 class="landing-subtitle" id="landingSubtitle">
+                        <span class="word">Чистая</span>
+                        <span class="word">Казань</span>
+                    </h2>
+                    <p class="landing-desc" id="landingDesc">
+                        <span class="line">Вместе мы сделаем наш город</span>
+                        <span class="line">чище, зеленее и красивее!</span>
+                        <span class="line">Сообщайте о мусоре и помогайте убирать.</span>
+                    </p>
+                    <button class="landing-start-btn" id="landingStartBtn">
+                        <span>🚀</span> Начать
+                    </button>
+                </div>
+                <div class="landing-right">
+                    <img src="img.png" alt="Волонтеры" class="img.png" onerror="this.style.display='none'">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- АВТОРИЗАЦИЯ -->
+    <div id="authScreen" class="screen">
+        <div class="auth-bg">
+            <div class="auth-card">
+                <div class="logo-area">
+                    <div class="logo-icon">🌿</div>
+                    <h1 id="authTitle">Чистая Казань</h1>
+                    <p id="authSubtitle">Вместе сделаем город чище</p>
+                </div>
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="ru" id="langBtnRu">🇷🇺 RU</button>
+                    <button class="lang-btn" data-lang="tt" id="langBtnTt">🇹🇷 TT</button>
+                    <button class="lang-btn" data-lang="en" id="langBtnEn">🇬🇧 EN</button>
+                </div>
+                <div class="tabs">
+                    <button class="tab active" data-tab="login" id="tabLogin">Вход</button>
+                    <button class="tab" data-tab="register" id="tabRegister">Регистрация</button>
+                </div>
+                
+                <form id="loginForm" class="auth-form active">
+                    <input type="text" id="loginUsername" placeholder="Логин" class="input-field">
+                    <input type="password" id="loginPassword" placeholder="Пароль" class="input-field">
+                    <button type="submit" class="btn-primary" id="loginBtn">Войти</button>
+                    <div id="loginError" class="error-msg"></div>
+                </form>
+                
+                <form id="registerForm" class="auth-form">
+                    <input type="text" id="regName" placeholder="Имя" class="input-field">
+                    <input type="text" id="regLogin" placeholder="Логин (латиницей)" class="input-field">
+                    <input type="password" id="regPassword" placeholder="Пароль (минимум 4)" class="input-field">
+                    <div class="avatar-row">
+                        <div class="avatar-preview" id="regAvatarPreview">👤</div>
+                        <label class="avatar-label" id="avatarLabel">📸 Загрузить аватар
+                            <input type="file" id="regAvatar" accept="image/*" style="display:none">
+                        </label>
+                    </div>
+                    <button type="submit" class="btn-primary" id="registerBtn">Зарегистрироваться</button>
+                    <div id="regError" class="error-msg"></div>
+                </form>
+                
+                <button class="back-to-landing" id="backToLanding">← Назад на главную</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div id="mainScreen" class="screen">
+        <div id="map"></div>
+        <div class="top-bar">
+            <div class="logo-small" id="mainTitleSmall">🌿 <span id="mainTitle">Чистая Казань</span></div>
+            <div class="header-right">
+                <div class="lang-mini">
+                    <button class="lang-mini-btn active" data-lang="ru" id="langMiniRu">RU</button>
+                    <button class="lang-mini-btn" data-lang="tt" id="langMiniTt">TT</button>
+                    <button class="lang-mini-btn" data-lang="en" id="langMiniEn">EN</button>
+                </div>
+                <div class="user-chip" id="userChip">
+                    <span id="headerUserName"></span>
+                    <div class="user-avatar" id="headerAvatar"></div>
+                </div>
+            </div>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск парка, сквера, набережной...">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn" data-action="report" id="navBtnReport">
+                <span class="nav-icon">📢</span>
+                <span class="nav-text" id="navReport">Сообщить</span>
+            </button>
+            <button class="nav-btn" data-action="volunteer" id="navBtnVolunteer">
+                <span class="nav-icon">🧹</span>
+                <span class="nav-text" id="navVolunteer">Помочь</span>
+                <span id="badgeCount" class="badge">0</span>
+            </button>
+            <button class="nav-btn" data-action="profile" id="navBtnProfile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text" id="navProfile">Профиль</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: СООБЩИТЬ -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="reportTitle">📢 Сообщить о мусоре</h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <form id="reportForm">
+                <div class="field">
+                    <label id="placeLabel">📍 Место</label>
+                    <select id="reportPlace" required>
+                        <option value="" id="placeSelectDefault">Выберите место</option>
+                    </select>
+                    <button type="button" id="openAddPlaceBtn" class="link-btn">+ Добавить своё место</button>
+                </div>
+                <div class="field">
+                    <label id="typeLabel">🗑️ Тип мусора</label>
+                    <div class="type-row">
+                        <button type="button" data-type="dump" class="type-btn">🏗️ Свалка</button>
+                        <button type="button" data-type="overflow" class="type-btn">🗑️ Переполненный бак</button>
+                        <button type="button" data-type="forest" class="type-btn">🌲 Мусор в лесу</button>
+                        <button type="button" data-type="shore" class="type-btn">💧 Грязный берег</button>
+                        <button type="button" data-type="plastic" class="type-btn">🥤 Пластиковый мусор</button>
+                        <button type="button" data-type="construction" class="type-btn">🧱 Строительный мусор</button>
+                        <button type="button" data-type="other" class="type-btn">❓ Другое</button>
+                    </div>
+                    <input type="hidden" id="reportType">
+                </div>
+                <div class="field">
+                    <label id="photoLabel">📸 Фото (обязательно)</label>
+                    <input type="file" id="reportPhoto" accept="image/*" capture="environment">
+                    <div id="reportPhotoPreview" class="photo-preview"></div>
+                </div>
+                <div class="field">
+                    <label id="commentLabel">📝 Комментарий</label>
+                    <textarea id="reportComment" rows="2" placeholder="Опишите проблему..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit" id="reportSubmitBtn">Отправить заявку</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ПОМОЧЬ -->
+    <div id="volunteerModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="volunteerTitle">🧹 Активные заявки</h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <div id="complaintsList" class="complaints-list"></div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: УБОРКА -->
+    <div id="cleanupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="cleanupTitle">✨ Подтвердить уборку</h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <form id="cleanupForm">
+                <p id="cleanupPlaceName" class="cleanup-place"></p>
+                <div class="field">
+                    <label id="cleanupPhotoLabel">📸 Фото после уборки (обязательно)</label>
+                    <input type="file" id="cleanupPhoto" accept="image/*" capture="environment">
+                    <div id="cleanupPhotoPreview" class="photo-preview"></div>
+                </div>
+                <input type="hidden" id="cleanupId">
+                <button type="submit" class="btn-submit" id="cleanupSubmitBtn">✅ Я убрал</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ДОБАВИТЬ МЕСТО -->
+    <div id="addPlaceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addPlaceTitle">📍 Добавить место</h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <form id="addPlaceForm">
+                <div class="field">
+                    <label id="addPlaceNameLabel">Название места</label>
+                    <input type="text" id="newPlaceName" placeholder="Например: Парк Победы" required>
+                </div>
+                <div class="field">
+                    <label id="addPlaceLatLabel">Широта</label>
+                    <input type="number" id="newPlaceLat" step="any" placeholder="55.787" required>
+                </div>
+                <div class="field">
+                    <label id="addPlaceLngLabel">Долгота</label>
+                    <input type="number" id="newPlaceLng" step="any" placeholder="49.124" required>
+                </div>
+                <button type="submit" class="btn-submit" id="addPlaceSubmitBtn">Добавить место</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ПРОФИЛЬ -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h3 id="profileTitle">👤 Мой профиль</h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <div class="profile-center">
+                <div class="profile-avatar" id="profileAvatar">👤</div>
+                <div class="profile-name-row">
+                    <input type="text" id="profileName" class="profile-input" placeholder="Имя">
+                    <button id="saveProfileName" class="small-btn">Сохранить</button>
+                </div>
+                <p id="profileLogin" class="profile-login"></p>
+            </div>
+            <div class="stats-row">
+                <div class="stat">
+                    <span class="stat-num" id="statReports">0</span>
+                    <span class="stat-label" id="labelReports">Заявок</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" id="statCleanups">0</span>
+                    <span class="stat-label" id="labelCleanups">Уборок</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" id="statRating">0</span>
+                    <span class="stat-label" id="labelRating">Рейтинг</span>
+                </div>
+            </div>
+            <div class="cleanups-gallery" id="cleanupsGallery">
+                <h4 class="gallery-title" id="galleryTitle">🏆 Мои уборки</h4>
+                <div class="gallery-list" id="galleryList"></div>
+            </div>
+            <button id="changeAvatarBtn" class="outline-btn">Изменить аватар</button>
+            <input type="file" id="changeAvatarInput" accept="image/*" style="display:none">
+            <button id="logoutBtn" class="outline-btn danger">Выйти из аккаунта</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ПРОФИЛЬ ДРУГОГО -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h3 id="userProfileTitle">👤 Профиль</h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <div class="profile-center">
+                <div class="profile-avatar" id="userProfileAvatar">👤</div>
+                <h3 id="userProfileName"></h3>
+                <p id="userProfileLogin" class="profile-login"></p>
+            </div>
+            <div class="stats-row">
+                <div class="stat">
+                    <span class="stat-num" id="userStatReports">0</span>
+                    <span class="stat-label" id="userLabelReports">Заявок</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" id="userStatCleanups">0</span>
+                    <span class="stat-label" id="userLabelCleanups">Уборок</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-num" id="userStatRating">0</span>
+                    <span class="stat-label" id="userLabelRating">Рейтинг</span>
+                </div>
+            </div>
+            <div class="cleanups-gallery" id="userCleanupsGallery">
+                <h4 class="gallery-title" id="userGalleryTitle">🏆 Уборки</h4>
+                <div class="gallery-list" id="userGalleryList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ИНФО МЕСТА -->
+    <div id="placeInfoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="placeInfoTitle"></h3>
+                <button class="closeModal">&times;</button>
+            </div>
+            <p id="placeInfoStatus" class="place-status"></p>
+            <div id="placeInfoDetails" class="place-details"></div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЯ -->
+    <div id="toast" class="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
