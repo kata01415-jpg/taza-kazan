@@ -29,7 +29,7 @@ function saveComplaints(list) {
     localStorage.setItem('tk_complaints', JSON.stringify(list));
 }
 
-const PLACES_VERSION = '2';
+const PLACES_VERSION = '1';
 
 function getPlaces() {
     try {
@@ -38,16 +38,16 @@ function getPlaces() {
         if (data && version === PLACES_VERSION) return JSON.parse(data);
     } catch (e) {}
     const defaults = [
-        { id: 1, name: 'Парк Победы', lat: 55.8267, lng: 49.1033 },
-        { id: 2, name: 'Кремлевская набережная', lat: 55.796, lng: 49.106 },
-        { id: 3, name: 'Лесопарк Дубрава', lat: 55.812, lng: 49.185 },
-        { id: 4, name: 'Озеро Кабан', lat: 55.798, lng: 49.132 },
-        { id: 5, name: 'Улица Баумана', lat: 55.791, lng: 49.110 },
-        { id: 6, name: 'Парк им. Горького', lat: 55.783, lng: 49.140 },
-        { id: 7, name: 'Набережная Нижний Кабан', lat: 55.800, lng: 49.130 },
-        { id: 8, name: 'Сквер у театра Камала', lat: 55.789, lng: 49.122 },
-        { id: 9, name: 'Парк Урицкого', lat: 55.775, lng: 49.145 },
-        { id: 10, name: 'Набережная Федоровского', lat: 55.805, lng: 49.115 }
+        { id: 1, name: 'Парк Победы', lat: 55.82958576684222, lng: 49.10726727742754 },
+        { id: 2, name: 'Кремлевская набережная', lat: 55.803264883149325, lng: 49.11525958396522 },
+        { id: 3, name: 'Лесопарк Дубрава', lat: 55.73345403793192, lng: 49.20909901258775 },
+        { id: 4, name: 'Озеро Кабан', lat: 55.78082974873253, lng: 49.12150330053127 },
+        { id: 5, name: 'Улица Баумана', lat: 55.788433216052965, lng: 49.11977339745984 },
+        { id: 6, name: 'Парк им. Горького', lat: 55.79871406904111, lng: 49.14769737444903 },
+        { id: 7, name: 'Набережная Нижний Кабан', lat: 55.781504979898806, lng: 49.12331426512656 },
+        { id: 8, name: 'Сквер им. А.Н.Туполева', lat: 55.838233794035396, lng: 49.07961769779587 },
+        { id: 9, name: 'Парк Урицкого', lat: 55.83777667363631, lng: 49.06412301585548 },
+        { id: 10, name: 'Ак Барс Арена', lat: 55.82167344880847, lng: 49.160747842859614 },
     ];
     localStorage.setItem('tk_places', JSON.stringify(defaults));
     localStorage.setItem('tk_places_version', PLACES_VERSION);
@@ -83,7 +83,22 @@ function fileToBase64(file) {
     return new Promise((resolve) => {
         if (!file) { resolve(null); return; }
         const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const MAX = 800;
+                let w = img.width, h = img.height;
+                if (w > MAX || h > MAX) {
+                    if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                    else { w = Math.round(w * MAX / h); h = MAX; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = e.target.result;
+        };
         reader.readAsDataURL(file);
     });
 }
@@ -467,6 +482,7 @@ function handleLogin(e) {
 function enterApp() {
     showScreen('mainScreen');
     initMap();
+    requestAnimationFrame(() => { if (map) map.invalidateSize(); });
     updateHeader();
     updateBadge();
 }
@@ -496,7 +512,7 @@ function logout() {
 // ====== MAP ======
 function initMap() {
     if (map) return;
-    map = L.map('map', { zoomControl: false }).setView([55.79, 49.12], 12);
+    map = L.map('map', { zoomControl: false, attributionControl: false }).setView([55.79, 49.12], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
@@ -811,14 +827,21 @@ function handleAddPlace(e) {
         return;
     }
 
+    const newPlace = { id: generateId(), name: name, lat: lat, lng: lng };
     const places = getPlaces();
-    places.push({ id: generateId(), name: name, lat: lat, lng: lng });
+    places.push(newPlace);
     savePlaces(places);
 
-    showToast(t.successPlaceAdded);
     document.getElementById('addPlaceForm').reset();
-    closeAllModals();
+    document.getElementById('addPlaceModal').classList.remove('active');
+
     updatePlaceSelect();
+    const select = document.getElementById('reportPlace');
+    if (select) select.value = newPlace.id;
+
+    updateMapMarkers();
+    openModal('reportModal');
+    showToast(t.successPlaceAdded);
 }
 
 function showPlaceInfo(complaint) {
